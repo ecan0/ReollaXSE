@@ -21,33 +21,40 @@ const client = new smartcar.AuthClient({
 // access token
 let access;
 
-//AUTHENTICATION ROUTES
+//********AUTHENTICATION ROUTES**********
 
 // Login route for Smartcar authentication
 app.get('/login', function(req, res) {
-    const link = client.getAuthUrl(['required:read_vehicle_info']);
-    res.redirect(link);
+    const scope = ['read_vehicle_info'];
+    const authUrl = client.getAuthUrl(scope);
+    res.render('home', {
+        url: authUrl,
+    });
 });
 
 //Response from Smartcar, exchange code for access token
 app.get('/exchange', async function(req, res) {
     const code = req.query.code;
+
     access = await client.exchangeCode(code);
     res.redirect('/vehicle');
 });
-
 //VEHICLE ROUTES
 
 app.get('/vehicle', async function(req, res) {
-    //Get vehicle IDs
-    const vehicleIds = await smartcar.getVehicle(access.accessToken);
-    //Create first vehicle object in list of vehicles
-    const vehicle = new smartcar.Vehicle(vehicleIds.vehicles[0], access.accessToken);
-    //get vehicle info
-    const info = await vehicle.info();
-    console.log(info);
-    res.json(info);
+    // Get the smartcar vehicleIds associated with the access_token
+    const { vehicles } = await smartcar.getVehicles(access.accessToken);
+    
+    // Instantiate the first vehicle in the vehicle id list
+    const vehicle = new smartcar.Vehicle(vehicles[0], access.accessToken);
+
+    // Make a request to Smartcar API
+    const attributes = await vehicle.attributes();
+    res.render('vehicle', {
+        info: attributes, 
+    });
 });
+
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
