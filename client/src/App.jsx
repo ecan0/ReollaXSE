@@ -1,35 +1,33 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+require('dotenv').config();
 
-function App() {
-  const [count, setCount] = useState(0)
+import { Component } from 'react';
+import axios from 'axios';
+import Smartcar from '@smartcar/auth';
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+import Connect from './components/Connect';
+import Vehicle from './components/Vehicle';
+
+class App extends Component {
+  //default constructor initialization
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      vehicle: {},
+    };
+
+    this.authorize = this.authorize.bind(this);
+    this.onComplete = this.onComplete.bind(this);
+
+    //Create the instance of the Smartcar object.
+    this.Smartcar = new Smartcar({
+      clientId: process.env.REACT_APP_SMARTCAR_CLIENT_ID,
+      redirectUri: process.env.REACT_APP_SMARTCAR_REDIRECT_URI,
+      scope: ['required:read_vehicle_info'],
+      mode: 'test',
+      onComplete: this.onComplete,
+  });
+}
 }
 
-export default App
+export default App;
