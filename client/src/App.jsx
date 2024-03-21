@@ -2,7 +2,7 @@ require('dotenv').config();
 
 import { Component } from 'react';
 import axios from 'axios';
-import Smartcar from '@smartcar/auth';
+import smartcar from '@smartcar/auth';
 
 import Connect from './components/Connect';
 import Vehicle from './components/Vehicle';
@@ -20,14 +20,33 @@ class App extends Component {
     this.onComplete = this.onComplete.bind(this);
 
     //Create the instance of the Smartcar object.
-    this.Smartcar = new Smartcar({
-      clientId: process.env.REACT_APP_SMARTCAR_CLIENT_ID,
-      redirectUri: process.env.REACT_APP_SMARTCAR_REDIRECT_URI,
-      scope: ['required:read_vehicle_info'],
+    const client = new smartcar.AuthClient({
       mode: 'test',
-      onComplete: this.onComplete,
   });
 }
+
+onComplete(err, code, status) {
+  return axios
+  .get(`${process.env.REACT_APP_SERVER}/exchange?code=${code}`)
+  .then(_ => {
+    return axios.get(`${process.env.REACT_APP_SERVER}/vehicle`);
+  })
+  .then(res => {
+    this.setState({vehicle: res.data});
+  });
+}
+
+authorize() {
+    this.smartcar.openDialog({ forcePrompt: true });
+  }
+
+  render() {
+    return Object.keys(this.state.vehicle).length !== 0 ? (
+      <Vehicle info={this.state.vehicle} />
+    ) : (
+      <Connect onClick={this.authorize} />
+    );
+  }
 }
 
 export default App;
